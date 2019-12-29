@@ -1,14 +1,13 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 	"time"
 
 	"github.com/danieldides/skipper-server/internal/ads"
+	"github.com/danieldides/skipper-server/internal/util"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 
@@ -23,15 +22,15 @@ func main() {
 
 	r := chi.NewRouter()
 
-	dbCfg := dbOpts{
-		host:     os.Getenv("DB_HOST"),
-		user:     os.Getenv("DB_USER"),
-		password: os.Getenv("DB_PASSWORD"),
-		database: os.Getenv("DB_NAME"),
-		port:     os.Getenv("DB_PORT"),
+	dbCfg := util.DBOpts{
+		Host:     os.Getenv("DB_HOST"),
+		User:     os.Getenv("DB_USER"),
+		Password: os.Getenv("DB_PASSWORD"),
+		Database: os.Getenv("DB_NAME"),
+		Port:     os.Getenv("DB_PORT"),
 	}
 
-	db, err := ConnectDB(dbCfg)
+	db, err := util.ConnectDB(dbCfg)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -63,30 +62,4 @@ func main() {
 
 	log.Printf("Serving HTTP on %v\n", port)
 	http.ListenAndServe(port, r)
-}
-
-type dbOpts struct {
-	host     string
-	port     string
-	user     string
-	password string
-	database string
-}
-
-// ConnectDB connects to the master DB and returns the connection
-func ConnectDB(opts dbOpts) (*sql.DB, error) {
-	uri := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		opts.host, opts.port, opts.user, opts.password, opts.database)
-
-	log.Printf("Connecting to database: %v\n", opts.host)
-	db, err := sql.Open("postgres", uri)
-	if err != nil {
-		return nil, err
-	}
-	log.Println("Connected to database successfully")
-
-	db.SetMaxIdleConns(2)
-	db.SetMaxOpenConns(2)
-
-	return db, nil
 }

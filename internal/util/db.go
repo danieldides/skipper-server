@@ -3,28 +3,38 @@ package util
 import (
 	"database/sql"
 	"fmt"
+	"log"
 
 	_ "github.com/lib/pq"
 )
 
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "postgres"
-	password = "example"
-	dbname   = "skipper"
-)
+// DBOpts contains all necessary information for establishing a DB connection
+type DBOpts struct {
+	Host     string
+	Port     string
+	User     string
+	Password string
+	Database string
+}
 
-// ConnectDB connects to the database and returns the connection
-func ConnectDB() {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+// ConnectDB connects to the master DB and returns the connection
+func ConnectDB(opts DBOpts) (*sql.DB, error) {
+	uri := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		opts.Host, opts.Port, opts.User, opts.Password, opts.Database)
 
-	db, err := sql.Open("postgres", psqlInfo)
+	log.Printf("Connecting to database: %v\n", opts.Host)
+	db, err := sql.Open("postgres", uri)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	defer db.Close()
+	err = db.Ping()
+	if err != nil {
+		return nil, err
+	}
+	log.Println("Connected to database successfully")
 
+	db.SetMaxIdleConns(2)
+	db.SetMaxOpenConns(2)
+
+	return db, nil
 }
