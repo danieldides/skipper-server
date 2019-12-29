@@ -2,6 +2,7 @@ package ads
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"net/http"
 
@@ -24,11 +25,13 @@ func VidoCtx(next http.Handler) http.Handler {
 }
 
 // Controller struct to hold our routes
-type Controller struct{}
+type Controller struct {
+	db *sql.DB
+}
 
 // NewController creates a new Ads controller
-func NewController() *Controller {
-	return &Controller{}
+func NewController(db *sql.DB) *Controller {
+	return &Controller{db: db}
 }
 
 // Ad contains information about the individual ads
