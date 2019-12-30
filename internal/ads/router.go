@@ -19,8 +19,8 @@ func New(db *sql.DB) http.Handler {
 	})
 
 	r.Route("/{id}", func(r chi.Router) {
-		r.Use(VidoCtx)
-		r.Get("/", c.handleGetAd)
+		r.Use(VideoCtx)
+		r.Get("/", c.handleGetAdsByID)
 	})
 
 	return r
